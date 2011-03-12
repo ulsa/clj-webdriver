@@ -2527,7 +2527,7 @@ $(document).ready(function() {
 
 })
 </script><title>clj-webdriver -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-webdriver</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Clojure wrapper around Selenium-WebDriver library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.clojure/clojure-contrib</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">lein-clojars</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">lein-clojars</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
 
 <p>WebDriver is a library that allows for easy manipulation of the Firefox,
 Chrome, Safari and  Internet Explorer graphical browsers, as well as the
@@ -2537,10 +2537,9 @@ Java-based HtmlUnit headless browser.</p>
 include things like navigating to and from URL's, finding and interacting
 with elements within HTML pages, and handling browser cookies.</p>
 
-<p>The vast majority of this code has been taken from mikitebeka's
-<code>webdriver-clj</code> project hosted on Github. I plan to add support for
-the Select class, which provides easier mechanisms for interacting with
-select list form elements.</p>
+<p>Credits to mikitebeka's <code>webdriver-clj</code> project on Github for a starting-
+point for this project and many of the low-level wrappers around the
+WebDriver API.</p>
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.core
   (:use clj-webdriver.util)
   (:import [org.openqa.selenium By WebDriver WebElement Speed Cookie
@@ -2755,14 +2754,39 @@ to lack of uniform XPath support in WebDriver</p>
   (.setSelected element))</pre></tr><tr><td class="docs"><p>Returns true if the given element object is enabled</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn enabled?
   [element]
-  (.isEnabled element))</pre></tr><tr><td class="docs"><p>Retrieve the content, or inner HTML, of a given element object</p>
+  (.isEnabled element))</pre></tr><tr><td class="docs"><p>Returns true if the given element object is visible/displayed</p>
+
+<p>I like Watir-WebDriver's "visible?"; "displayed?" also used to align
+with WebDriver's word choice</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn visible?
+  [element]
+  (.isDisplayed element))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def displayed? ^{:doc "Returns true if the given element object is visible/displayed"} visible?)</pre></tr><tr><td class="docs"><p>Retrieve the content, or inner HTML, of a given element object</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn text
   [element]
   (.getText element))</pre></tr><tr><td class="docs"><p>Type the string of keys into the element object</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn send-keys
-  [element char-keys]
-  (.sendKeys element (into-array CharSequence (list char-keys))))</pre></tr><tr><td class="docs">
-</td><td class="codes" /><pre class="brush: clojure">(def input-text send-keys)</pre></tr><tr><td class="docs"><h2>org.openqa.selenium.support.ui.Select class</h2>
+  [element s]
+  (.sendKeys element (into-array CharSequence (list s))))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(def input-text send-keys)</pre></tr><tr><td class="docs"><p>Given an element object, return its location as a map of its x/y coordinates</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn location
+  [element]
+  (let [loc (.getLocation element)
+        x   (.x loc)
+        y   (.y loc)]
+    {:x x, :y y}))</pre></tr><tr><td class="docs"><p>Given an element object, return its location on the screen once it is scrolled into view as a map of its x/y coordinates. The window will scroll as much as possible until the element hits the top of the page; thus even visible elements will be scrolled until they reach that point.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn location-once-visible
+  [element]
+  (let [loc (.getLocationOnScreenOnceScrolledIntoView element)
+        x   (.x loc)
+        y   (.y loc)]
+    {:x x, :y y}))</pre></tr><tr><td class="docs"><p>Drag an element by <code>x</code> pixels to the right and <code>y</code> pixels down. Use negative numbers for opposite directions.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn drag-and-drop-by
+  [element ^Integer x ^Integer y]
+  (.dragAndDropBy element x y))</pre></tr><tr><td class="docs"><p>Drag <code>element-a</code> onto <code>element-b</code>. The (0,0) coordinates (top-left corners) of each element are aligned.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn drag-and-drop-on
+  [element-a element-b]
+  (.dragAndDropOn element-a element-b))</pre></tr><tr><td class="docs"><h2>org.openqa.selenium.support.ui.Select class</h2>
 </td><td class="codes" /></tr><tr><td class="docs"><p>Clear all selected entries for select list described by <code>by</code></p>
 </td><td class="codes" /><pre class="brush: clojure">(defn deselect-all
   [element]
@@ -2813,6 +2837,10 @@ to lack of uniform XPath support in WebDriver</p>
 </td><td class="codes" /></tr><tr><td class="docs"><p>Given a WebDriver <code>driver</code>, optional HTML tag <code>tag</code>, and an HTML attribute-value pair <code>attr-val</code>, return the first WebElement that matches. The values of <code>attr-val</code> items must match the target exactly.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn find-it
   ([driver attr-val]
+     (when (not= clojure.lang.PersistentArrayMap (class attr-val))
+       (throw (IllegalArgumentException.
+               (str "If you only supply two arguments to this function, "
+                    "the second must be a map of attribute-value pairs"))))
      (find-it driver :* attr-val))
   ([driver tag attr-val]
      (if (and
