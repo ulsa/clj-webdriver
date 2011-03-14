@@ -2678,8 +2678,8 @@ WebDriver API.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn by-css-selector
   [expr]
   (By/cssSelector expr))</pre></tr><tr><td class="docs"><p>Use <code>value</code> of arbitrary attribute <code>attr</code> to find an element. You can optionally specify the tag.
-   For example: (by-attr= :id "element-id")
-                (by-attr= :div :class "content"</p>
+   For example: <code>(by-attr= :id "element-id")</code>
+                <code>(by-attr= :div :class "content")</code></p>
 
 <p>Inspired by the <code>attr=</code>, <code>attr-contains</code> in Christophe Grand's enlive</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn by-attr=
@@ -2695,8 +2695,8 @@ WebDriver API.</p>
                                 (name tag)            ; tag from kw
                                 "[@" (name attr)      ; attr from kw
                                 "='" value "']")))))  ; ="value"</pre></tr><tr><td class="docs"><p>Match if <code>value</code> is contained in the value of <code>attr</code>. You can optionally specify the tag.
-   For example: (by-attr-contains :class "navigation")
-                (by-attr-contains :ul :class "tags")</p>
+   For example: <code>(by-attr-contains :class "navigation")</code>
+                <code>(by-attr-contains :ul :class "tags")</code></p>
 </td><td class="codes" /><pre class="brush: clojure">(defn by-attr-contains
   ([attr value] (by-attr-contains :* attr value)) ; default to * any tag
   ([tag attr value]
@@ -2741,8 +2741,8 @@ to lack of uniform XPath support in WebDriver</p>
   [element]
   (.getTagName element))</pre></tr><tr><td class="docs"><p>Retrieve the value of the attribute of the given element object</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn attribute
-  [element attr-name]
-  (.getAttribute element attr-name))</pre></tr><tr><td class="docs"><p>If the given element object is a checkbox, this will toggle its selected/unselected state</p>
+  [element attr]
+  (.getAttribute element (name attr)))</pre></tr><tr><td class="docs"><p>If the given element object is a checkbox, this will toggle its selected/unselected state</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn toggle
   [element]
   (.toggle element))</pre></tr><tr><td class="docs"><p>Returns true if the given element object is selected</p>
@@ -2833,41 +2833,92 @@ with WebDriver's word choice</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn select-by-text
   [element text]
   (let [select-list (Select. element)]
-    (.selectByVisibleText select-list text)))</pre></tr><tr><td class="docs"><h2>Syntactic Utilities</h2>
-</td><td class="codes" /></tr><tr><td class="docs"><p>Given a WebDriver <code>driver</code>, optional HTML tag <code>tag</code>, and an HTML attribute-value pair <code>attr-val</code>, return the first WebElement that matches. The values of <code>attr-val</code> items must match the target exactly.</p>
+    (.selectByVisibleText select-list text)))</pre></tr><tr><td class="docs"><h2>Element-finding Utilities</h2>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Given an <code>attr-val</code> pair with a regex value, find the element that matches</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn find-element-by-regex-alone
+  [driver tag attr-val]
+  (let [entry (first attr-val)
+        attr (key entry)
+        value (val entry)
+        all-elements (find-elements driver (by-xpath (str "//" (name tag))))] ; get all elements
+    (if (= :text attr)
+      (first
+       (filter #(re-find value (text %))
+               all-elements))
+      (first
+       (filter #(re-find value (attribute % (name attr)))
+               all-elements)))))</pre></tr><tr><td class="docs"><p>Given an <code>attr-val</code> pair with a regex value, find the elements that match</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn find-elements-by-regex-alone
+  [driver tag attr-val]
+  (let [entry (first attr-val)
+        attr (key entry)
+        value (val entry)
+        all-elements (find-elements driver (by-xpath (str "//" (name tag))))] ; get all elements
+    (if (= :text attr)
+      (into [] (filter #(re-find value (text %)) all-elements))
+      (into [] (filter #(re-find value (attribute % (name attr))) all-elements)))))</pre></tr><tr><td class="docs"><p>Given a WebDriver <code>driver</code>, optional HTML tag <code>tag</code>, and an HTML attribute-value pair <code>attr-val</code>, return the first WebElement that matches. The values of <code>attr-val</code> items must match the target exactly, unless a regex is used for a value.</p>
+
+<p>TODO: Increase regex support for both regular and ancestry-based queries</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn find-it
   ([driver attr-val]
-     (when (not= clojure.lang.PersistentArrayMap (class attr-val))
-       (throw (IllegalArgumentException.
-               (str "If you only supply two arguments to this function, "
-                    "the second must be a map of attribute-value pairs"))))
-     (find-it driver :* attr-val))
+     (cond
+      (= clojure.lang.Keyword (class attr-val))
+      (find-element driver (by-tag-name (name attr-val))) ; supplied just :tag
+      (= clojure.lang.PersistentVector (class attr-val))
+      (if (query-with-ancestry-has-regex? attr-val)
+        (throw (IllegalArgumentException.
+                (str "Finding an element via ancestry does not currently support the use of regular expressions.")))
+        (find-element driver (by-xpath (build-xpath-with-ancestry attr-val)))) ; supplied vector of queries in hierarchy
+      (= clojure.lang.PersistentArrayMap (class attr-val))
+      (find-it driver :* attr-val))) ; no :tag specified, use global *
   ([driver tag attr-val]
      (if (and
-          (> (count attr-val) 1)
+          (>  (count attr-val) 1)
           (or (contains? attr-val :xpath)
               (contains? attr-val :css)))
        (throw (IllegalArgumentException.
                (str "If you want to find an element via XPath or CSS, "
                     "you may pass in one and only one attribute (:xpath or :css)")))
-      (if (= 1 (count attr-val)) ; we can do simply dispatch
-        (let [attr (key (first attr-val))
-              value (val (first attr-val))]
-          (cond
-           (= :xpath attr) (find-element driver (by-xpath value))
-           (= :css attr)   (find-element driver (by-css-selector value))
-           :else           (find-element driver (by-attr= tag attr value))))
-        (find-element driver (by-xpath (build-xpath tag attr-val)))))))</pre></tr><tr><td class="docs"><p>Given a WebDriver <code>driver</code>, optional HTML tag <code>tag</code>, and an HTML attribute-value pair <code>attr-val</code>, return the first WebElement that matches. The values of <code>attr-val</code> items must be contained within the target value, e.g. <code>'log'</code> would match <code>'not_logged_in'</code>.</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn <find-it>
-  ([driver attr value]
-     (<find-it> driver :* attr value))
-  ([driver tag attr value]
-     (find-element driver (by-attr-contains tag attr value))))</pre></tr><tr><td class="docs"><p>Given a WebDriver <code>driver</code>, optional HTML tag <code>tag</code>, and an HTML attribute-value pair <code>attr-val</code>, return the first WebElement that matches. The values of <code>attr-val</code> items must represent the start of the target value, e.g. <code>'log'</code> would match <code>'login'</code> but not <code>'not_logged_in'</code></p>
-</td><td class="codes" /><pre class="brush: clojure">(defn <find-it
-  ([driver attr value]
-     (<find-it driver :* attr value))
-  ([driver tag attr value]
-     (find-element driver (by-attr-starts tag attr value))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+       (if (= 1 (count attr-val)) ; we can do simple dispatch
+         (let [entry (first attr-val)
+               attr  (key entry)
+               value (val entry)]
+           (cond
+            (= java.util.regex.Pattern (class value)) (find-element-by-regex-alone driver tag attr-val)
+            (= :xpath attr) (find-element driver (by-xpath value))
+            (= :css attr)   (find-element driver (by-css-selector value))
+            :else           (find-element driver (by-attr= tag attr value))))
+         (find-element driver (by-xpath (build-xpath tag attr-val)))))))</pre></tr><tr><td class="docs"><p>Plural version of <code>find-it</code> function; returns a vector of multiple matches.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn find-them
+  ([driver attr-val]
+     (cond
+      (= clojure.lang.Keyword (class attr-val))
+      (find-elements driver (by-tag-name (name attr-val))) ; supplied just :tag
+      (= clojure.lang.PersistentVector (class attr-val))
+      (if (query-with-ancestry-has-regex? attr-val)
+        (throw (IllegalArgumentException.
+                (str "Finding an element via ancestry does not currently support the use of regular expressions.")))
+        (find-elements driver (by-xpath (build-xpath-with-ancestry attr-val)))) ; supplied vector of queries in hierarchy
+      (= clojure.lang.PersistentArrayMap (class attr-val))
+      (find-them driver :* attr-val))) ; no :tag specified, use global *
+  ([driver tag attr-val]
+     (if (and
+          (>  (count attr-val) 1)
+          (or (contains? attr-val :xpath)
+              (contains? attr-val :css)))
+       (throw (IllegalArgumentException.
+               (str "If you want to find an element via XPath or CSS, "
+                    "you may pass in one and only one attribute (:xpath or :css)")))
+       (if (= 1 (count attr-val)) ; we can do simple dispatch
+         (let [entry (first attr-val)
+               attr  (key entry)
+               value (val entry)]
+           (cond
+            (= java.util.regex.Pattern (class value)) (find-elements-by-regex-alone driver tag attr-val)
+            (= :xpath attr) (find-elements driver (by-xpath value))
+            (= :css attr)   (find-elements driver (by-css-selector value))
+            :else           (find-elements driver (by-attr= tag attr value))))
+         (find-elements driver (by-xpath (build-xpath tag attr-val)))))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.util
   (:require [clojure.string :as str])
   (:import [org.openqa.selenium WebDriver WebElement]))</pre></tr><tr><td class="docs"><p>Given a tag and a map of attribute-value pairs, generate XPath</p>
@@ -2875,13 +2926,31 @@ with WebDriver's word choice</p>
   [tag attr-val]
   (str "//"
        (name tag)
-       (apply str (for [[attr value] attr-val]
-                    (if (= :text attr) ; inspired by Watir-WebDriver
-                      (str "[text()='" value "']")
-                      (str "[@"
-                          (name attr)
-                          "="
-                          "'" value "']"))))))</pre></tr><tr><td class="docs"><p>Get first twenty characters of <code>s</code>, then add ellipsis</p>
+       (if (empty? attr-val)
+         nil
+         (apply str (for [[attr value] attr-val]
+                     (if (= :text attr) ; inspired by Watir-WebDriver
+                       (str "[text()='" value "']")
+                       (str "[@"
+                            (name attr)
+                            "="
+                            "'" value "']")))))))</pre></tr><tr><td class="docs"><p>Given a vector of queries in hierarchical order, create XPath.
+   For example: <code>[:div {:id "content"}, :a {:class "external"}]</code> would
+   produce the XPath "//div[@id='content']//a[@class='external']</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn build-xpath-with-ancestry
+  [attr-val]
+  (apply str (let [tag-to-attrs (partition 2 attr-val)]
+               (for [xpath-parts tag-to-attrs]
+                 (build-xpath (first xpath-parts) (second xpath-parts))))))</pre></tr><tr><td class="docs"><p>[:div {:id "content"}, :a {:class "external"}]</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Check if any values in maps as part of ancestry-based query have a regex</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn query-with-ancestry-has-regex?
+  [v]
+  (let [maps (flatten (for [chunk (partition 2 v)]
+                        (second chunk)))]
+    (some true? (for [m maps]
+                  (some (fn [map-entry]
+                          (let [[k v] map-entry]
+                            (= java.util.regex.Pattern (class v)))) m)))))</pre></tr><tr><td class="docs"><p>Get first twenty characters of <code>s</code>, then add ellipsis</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn first-60
   [s]
   (str (re-find #"(?s).{1,60}" s)
@@ -2932,5 +3001,38 @@ with WebDriver's word choice</p>
                  (str "Href: "   href ", "))
      (when-attr src
                  (str "Source: " src ", "))
-     "Object: "                  q ">") w)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+     "Object: "                  q ">") w)))</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(comment
+
+(defn <find-it>
+  "Given a WebDriver `driver`, optional HTML tag `tag`, and an HTML attribute-value pair `attr-val`, return the first WebElement that matches. The values of `attr-val` items must be contained within the target value, e.g. `'log'` would match `'not_logged_in'`."
+  ([driver attr-val]
+     (<find-it> driver :* attr-val))
+  ([driver tag attr-val]
+     (if (> (count attr-val) 1)
+       (throw (IllegalArgumentException.
+               (str "Your attr-val map may only include one attribute-value pair. "
+                    "Due to inconsistent XPath behavior, locating an element "
+                    "by multiple calls to contains() is not supported.")))
+       (let [entry (first attr-val)
+             attr (key entry)
+             value (val entry)]
+         (find-element driver (by-attr-contains tag attr value))))))
+
+(defn <find-it
+  "Given a WebDriver `driver`, optional HTML tag `tag`, and an HTML attribute-value pair `attr-val`, return the first WebElement that matches. The values of `attr-val` items must represent the start of the target value, e.g. `'log'` would match `'login'` but not `'not_logged_in'`"
+  ([driver attr-val]
+     (<find-it driver :* attr-val))
+  ([driver tag attr-val]
+     (if (> (count attr-val) 1)
+       (throw (IllegalArgumentException.
+               (str "Your attr-val map may only include one attribute-value pair. "
+                    "Due to inconsistent XPath behavior, locating an element "
+                    "by multiple calls to starts-with() is not supported.")))
+       (let [entry (first attr-val)
+             attr (key entry)
+             value (val entry)]
+         (find-element driver (by-attr-starts tag attr value))))))  
+
+  )</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
