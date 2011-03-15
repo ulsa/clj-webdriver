@@ -2527,7 +2527,7 @@ $(document).ready(function() {
 
 })
 </script><title>clj-webdriver -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-webdriver</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Clojure wrapper around Selenium-WebDriver library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">lein-clojars</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">lein-clojars</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.firefox">clj-webdriver.firefox</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
 
 <p>WebDriver is a library that allows for easy manipulation of the Firefox,
 Chrome, Safari and  Internet Explorer graphical browsers, as well as the
@@ -2556,10 +2556,14 @@ WebDriver API.</p>
    :firefox FirefoxDriver
    :ie InternetExplorerDriver
    :chrome ChromeDriver
-   :htmlunit HtmlUnitDriver })</pre></tr><tr><td class="docs"><p>Create new driver instance given a browser type</p>
+   :htmlunit HtmlUnitDriver })</pre></tr><tr><td class="docs"><p>Create new driver instance given a browser type. If an additional profile object or string is passed in, Firefox will be started with the given profile instead of the default.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn new-driver
-  [browser]
-  (.newInstance (*drivers* browser)))</pre></tr><tr><td class="docs"><p>Navigate the driver to a given URL</p>
+  ([browser]
+     (.newInstance (*drivers* browser)))
+  ([browser profile]
+     (when (not= :firefox browser)
+       (throw (IllegalArgumentException. "Only Firefox supports profiles")))
+     (FirefoxDriver. profile)))</pre></tr><tr><td class="docs"><p>Navigate the driver to a given URL</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn get-url
   [driver url]
   (.get driver url))</pre></tr><tr><td class="docs"><p>Shortcut to instantiate a driver, navigate to a URL, and return the driver for further use</p>
@@ -2958,7 +2962,30 @@ with WebDriver's word choice</p>
             :else           (find-elements driver (by-attr= tag attr value))))
          (if (contains-regex? attr-val)
            (find-elements-by-regex driver tag attr-val)
-           (find-elements driver (by-xpath (build-xpath tag attr-val))))))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+           (find-elements driver (by-xpath (build-xpath tag attr-val))))))))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.firefox" name="clj-webdriver.firefox"><h1 class="project-name">clj-webdriver.firefox</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.firefox
+  (:require [clojure.java.io :as io])
+  (:import org.openqa.selenium.firefox.FirefoxProfile))</pre></tr><tr><td class="docs"><p>Create an instance of <code>FirefoxProfile</code></p>
+
+<p>TODO: Provide convenient way to pass in a profile, e.g. to Firefox driver,
+to enable add-ons when needed</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn new-profile
+  []
+  (FirefoxProfile.))</pre></tr><tr><td class="docs"><p>Given a <code>FirefoxProfile</code> object, enable an extension located at <code>extension-location</code>.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn enable-extension
+  [profile extension-location]
+  (let [ext-file (io/as-file extension-location)]
+    (.addExtension profile ext-file)))</pre></tr><tr><td class="docs"><p>Given a <code>FirefoxProfile</code> object and a map of preferences, set the preferences for the profile.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn set-preferences
+  [profile pref-m]
+  (doseq [entry pref-m]
+    (.setPreference profile (name (key entry)) (val entry))))</pre></tr><tr><td class="docs"><p>Set whether or not Firefox should accept untrusted certificates.</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn accept-untrusted-certs
+  [profile ^Boolean bool]
+  (.setAcceptUntrustedCertificates profile bool))</pre></tr><tr><td class="docs"><p>Set whether or not native events should be enabled (true by default on Windows, false on other platforms).</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn enable-native-events
+  [profile ^Boolean bool]
+  (.setEnableNativeEvents profile bool))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.util
   (:require [clojure.string :as str])
   (:import [org.openqa.selenium WebDriver WebElement]))</pre></tr><tr><td class="docs"><p>Given a tag and a map of attribute-value pairs, generate XPath</p>
@@ -3052,5 +3079,5 @@ with WebDriver's word choice</p>
                  (str "Href: "   href ", "))
      (when-attr src
                  (str "Source: " src ", "))
-     "Object: "                  q ">") w)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+     "Object: "                  q ">") w)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.firefox">clj-webdriver.firefox</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
