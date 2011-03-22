@@ -2526,8 +2526,8 @@ $(document).ready(function() {
     ul.css('margin-top', '0px')
 
 })
-</script><title>clj-webdriver -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-webdriver</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br /><p>Clojure wrapper around Selenium-WebDriver library</p>
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">lein-clojars</td><td class="dotted"><hr /></td><td class="dep-version">0.6.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.firefox">clj-webdriver.firefox</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
+</script><title>clj-webdriver -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">clj-webdriver</h1><h2 class="project-version">0.1.0</h2><br /><p>Clojure wrapper around Selenium-WebDriver library</p>
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.2.0</td></tr><tr><td class="dep-name">ordered-set</td><td class="dotted"><hr /></td><td class="dep-version">0.1.0</td></tr><tr><td class="dep-name">org.seleniumhq.selenium/selenium-server</td><td class="dotted"><hr /></td><td class="dep-version">2.0b2</td></tr></table></div><div class="dependencies"><h3>dev dependencies</h3><table><tr><td class="dep-name">swank-clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.3.0-SNAPSHOT</td></tr><tr><td class="dep-name">marginalia</td><td class="dotted"><hr /></td><td class="dep-version">0.5.0</td></tr><tr><td class="dep-name">ring</td><td class="dotted"><hr /></td><td class="dep-version">0.3.7</td></tr><tr><td class="dep-name">enlive</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr><tr><td class="dep-name">net.cgrand/moustache</td><td class="dotted"><hr /></td><td class="dep-version">1.0.0</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#clj-webdriver.core">clj-webdriver.core</a></li><li><a href="#clj-webdriver.firefox">clj-webdriver.firefox</a></li><li><a href="#clj-webdriver.record">clj-webdriver.record</a></li><li><a href="#clj-webdriver.util">clj-webdriver.util</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.core" name="clj-webdriver.core"><h1 class="project-name">clj-webdriver.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>Clojure Wrapper for Selenium-WebDriver</p>
 
 <p>WebDriver is a library that allows for easy manipulation of the Firefox,
 Chrome, Safari and  Internet Explorer graphical browsers, as well as the
@@ -2541,8 +2541,10 @@ with elements within HTML pages, and handling browser cookies.</p>
 point for this project and many of the low-level wrappers around the
 WebDriver API.</p>
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.core
-  (:use clj-webdriver.util)
-  (:import [org.openqa.selenium By WebDriver WebElement Speed Cookie
+  (:use [clj-webdriver util record]
+        ordered-set)
+  (:import [clj-webdriver.record WindowHandle]
+           [org.openqa.selenium By WebDriver WebElement Speed Cookie
                                 NoSuchElementException]
            [org.openqa.selenium.firefox FirefoxDriver]
            [org.openqa.selenium.ie InternetExplorerDriver]
@@ -2587,13 +2589,48 @@ WebDriver API.</p>
   (.close driver))</pre></tr><tr><td class="docs"><p>Destroy this browser instance</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn quit
   [driver]
-  (.quit driver))</pre></tr><tr><td class="docs"><p>Retrieve a set of window handles which can be used to switchTo particular open windows</p>
+  (.quit driver))</pre></tr><tr><td class="docs"><p>We've defined our own record type WindowHandler because
+the String id which WebDriver returns by default to identify
+a window is not particularly helpful</p>
+
+<p>The equivalent starred functions below wrap the WebDriver methods
+directly, without using a cusotm record.</p>
+
+<p>Get the only (or first) window handle, return as a WindowHandler record</p>
+</td><td class="codes" /><pre class="brush: clojure">(declare switch-to-window)
+(defn window-handle
+  [driver]
+  (WindowHandle. (.getWindowHandle driver)
+                  (title driver)
+                  (current-url driver)))</pre></tr><tr><td class="docs"><p>For WebDriver API compatibility: this simply wraps <code>.getWindowHandle</code></p>
+</td><td class="codes" /><pre class="brush: clojure">(defn window-handle*
+  [driver]
+  (.getWindowHandle driver))</pre></tr><tr><td class="docs"><p>Retrieve an ordered-set of <code>WindowHandle</code> records which can be used to switchTo particular open windows</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn window-handles
   [driver]
-  (into #{} (.getWindowHandles driver)))</pre></tr><tr><td class="docs"><p>Get the only (or first) window handle</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn window-handle
+  (let [current-handle (.getWindowHandle driver)
+        all-handles (into [] (.getWindowHandles driver))
+        handle-records (for [handle all-handles]
+                         (let [b (switch-to-window driver handle)]
+                           (WindowHandle. handle
+                                          (title b)
+                                          (current-url b))))
+        handle-records-in-order (into [] handle-records)]
+    (switch-to-window driver current-handle)
+    handle-records-in-order))</pre></tr><tr><td class="docs"><p>For WebDriver API compatibility: this simply wraps <code>.getWindowHandles</code></p>
+</td><td class="codes" /><pre class="brush: clojure">(defn window-handles*
   [driver]
-  (.getWindowHandle driver))</pre></tr><tr><td class="docs"><p>Go back to the previous page in "browsing history"</p>
+  (into [] (.getWindowHandles driver)))</pre></tr><tr><td class="docs"><p>Retrieve window handles for all windows except the current one</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn other-window-handles
+  [driver]
+  (into []
+        (remove #(= (:handle %) (:handle (window-handle driver)))
+                (window-handles driver))))</pre></tr><tr><td class="docs"><p>For consistency with other window handling functions, this starred version just returns the string-based ID's that WebDriver produces</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn other-window-handles*
+  [driver]
+  (into []
+        (remove #(= % (window-handle* driver))
+                (window-handles* driver))))</pre></tr><tr><td class="docs"><p>Go back to the previous page in "browsing history"</p>
 
 <h2>Navigation Interface</h2>
 </td><td class="codes" /><pre class="brush: clojure">(defn back
@@ -2614,14 +2651,24 @@ WebDriver API.</p>
   [driver frame]
   (.frame (.switchTo driver) frame))</pre></tr><tr><td class="docs"><p>Switch focus to a particular open window</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn switch-to-window
-  [driver window]
-  (.window (.switchTo driver) window))</pre></tr><tr><td class="docs"><p>Switch focus to the first first frame of the page, or the main document if the page contains iframes</p>
+  [driver window-handle]
+  (condp = (class window-handle)
+    java.lang.String                   (.window (.switchTo driver) window-handle)
+    clj-webdriver.record.WindowHandle  (.window (.switchTo driver) (:handle window-handle))))</pre></tr><tr><td class="docs"><p>Given that two and only two browser windows are open, switch to the one not currently active</p>
+</td><td class="codes" /><pre class="brush: clojure">(defn switch-to-other-window
+  [driver]
+  (if (> (count (window-handles driver)) 2)
+    (throw (RuntimeException.
+            (str "You may only use this function when two and only two "
+                 "browser windows are open.")))
+    (switch-to-window driver (first (other-window-handles driver)))))</pre></tr><tr><td class="docs"><p>Switch focus to the first first frame of the page, or the main document if the page contains iframes</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn switch-to-default
   [driver]
   (.defaultContent (.switchTo driver)))</pre></tr><tr><td class="docs"><p>Switch to element that currently has focus, or to the body if this cannot be detected</p>
-</td><td class="codes" /><pre class="brush: clojure">(defn swith-to-active
+</td><td class="codes" /><pre class="brush: clojure">(defn switch-to-active
   [driver]
-  (.activeElement (.switchTo driver)))</pre></tr><tr><td class="docs"><p>Create a new cookie instance</p>
+  (.activeElement (.switchTo driver)))</pre></tr><tr><td class="docs"><h2>Option Interface</h2>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Create a new cookie instance</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn new-cookie
   ([name value] (new-cookie name value "/" nil))
   ([name value path] (new-cookie name value path nil))
@@ -2632,8 +2679,6 @@ WebDriver API.</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn cookie-value
   [cookie]
   (.getValue cookie))</pre></tr><tr><td class="docs"><p>Add a new cookie to the browser session</p>
-
-<h2>Option Interface</h2>
 </td><td class="codes" /><pre class="brush: clojure">(defn add-cookie
   [driver cookie]
   (.addCookie (.manage driver) cookie))</pre></tr><tr><td class="docs"><p>Delete a cookie given its name</p>
@@ -2657,7 +2702,8 @@ WebDriver API.</p>
 (def *fast-speed* Speed/FAST)</pre></tr><tr><td class="docs"><p>Set the speed at which the browser should execute commands</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn speed
   ([driver] (.getSpeed (.manage driver)))
-  ([driver speed] (.setSpeed (.manage driver) speed)))</pre></tr><tr><td class="docs"><p>Used when finding elements. Returns <code>By/id</code> of <code>expr</code></p>
+  ([driver speed] (.setSpeed (.manage driver) speed)))</pre></tr><tr><td class="docs"><h2>By* Functions</h2>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Used when finding elements. Returns <code>By/id</code> of <code>expr</code></p>
 </td><td class="codes" /><pre class="brush: clojure">(defn by-id
   [expr]
   (By/id expr))</pre></tr><tr><td class="docs"><p>Used when finding elements. Returns <code>By/linkText</code> of <code>expr</code></p>
@@ -2718,15 +2764,7 @@ WebDriver API.</p>
                     (name attr)          ; attr from kw
                     ",'" value "')]")))) ; ,'value')]</pre></tr><tr><td class="docs"><p>I can't add more functions like <code>by-attr-ends</code> or <code>by-attr-matches</code> (regex) due
 to lack of uniform XPath support in WebDriver</p>
-</td><td class="codes" /></tr><tr><td class="docs"><p>Retrieve the element object of an element described by <code>by</code></p>
-</td><td class="codes" /><pre class="brush: clojure">(defn find-element
-  [driver by]
-  (try (.findElement driver by)
-  (catch NoSuchElementException e nil)))</pre></tr><tr><td class="docs"><p>Retrieve a seq of element objects described by <code>by</code></p>
-</td><td class="codes" /><pre class="brush: clojure">(defn find-elements
-  [driver by]
-  (try (seq (.findElements driver by))
-  (catch NoSuchElementException e [])))</pre></tr><tr><td class="docs"><p>Click a particular HTML element</p>
+</td><td class="codes" /></tr><tr><td class="docs"><p>Click a particular HTML element</p>
 
 <h2>WebElement</h2>
 </td><td class="codes" /><pre class="brush: clojure">(defn click
@@ -2838,8 +2876,17 @@ with WebDriver's word choice</p>
   [element text]
   (let [select-list (Select. element)]
     (.selectByVisibleText select-list text)))</pre></tr><tr><td class="docs"><h2>Element-finding Utilities</h2>
+</td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(declare find-it)
-(declare find-them)</pre></tr><tr><td class="docs"><p>Given an <code>attr-val</code> pair with a regex value, find the elements that match</p>
+(declare find-them)</pre></tr><tr><td class="docs"><p>Retrieve the element object of an element described by <code>by</code></p>
+</td><td class="codes" /><pre class="brush: clojure">(defn find-element
+  [driver by]
+  (try (.findElement driver by)
+  (catch NoSuchElementException e nil)))</pre></tr><tr><td class="docs"><p>Retrieve a seq of element objects described by <code>by</code></p>
+</td><td class="codes" /><pre class="brush: clojure">(defn find-elements
+  [driver by]
+  (try (seq (.findElements driver by))
+  (catch NoSuchElementException e [])))</pre></tr><tr><td class="docs"><p>Given an <code>attr-val</code> pair with a regex value, find the elements that match</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn find-elements-by-regex-alone
   [driver tag attr-val]
   (let [entry (first attr-val)
@@ -2966,9 +3013,6 @@ with WebDriver's word choice</p>
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.firefox
   (:require [clojure.java.io :as io])
   (:import org.openqa.selenium.firefox.FirefoxProfile))</pre></tr><tr><td class="docs"><p>Create an instance of <code>FirefoxProfile</code></p>
-
-<p>TODO: Provide convenient way to pass in a profile, e.g. to Firefox driver,
-to enable add-ons when needed</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn new-profile
   []
   (FirefoxProfile.))</pre></tr><tr><td class="docs"><p>Given a <code>FirefoxProfile</code> object, enable an extension located at <code>extension-location</code>.</p>
@@ -2985,7 +3029,10 @@ to enable add-ons when needed</p>
   (.setAcceptUntrustedCertificates profile bool))</pre></tr><tr><td class="docs"><p>Set whether or not native events should be enabled (true by default on Windows, false on other platforms).</p>
 </td><td class="codes" /><pre class="brush: clojure">(defn enable-native-events
   [profile ^Boolean bool]
-  (.setEnableNativeEvents profile bool))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (.setEnableNativeEvents profile bool))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.record" name="clj-webdriver.record"><h1 class="project-name">clj-webdriver.record</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs"><p>A namespace dedicated to defrecord's</p>
+</td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.record)</pre></tr><tr><td class="docs">
+</td><td class="codes" /><pre class="brush: clojure">(defrecord WindowHandle [handle title url])</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#clj-webdriver.util" name="clj-webdriver.util"><h1 class="project-name">clj-webdriver.util</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes" /><pre class="brush: clojure">(ns clj-webdriver.util
   (:require [clojure.string :as str])
   (:import [org.openqa.selenium WebDriver WebElement]))</pre></tr><tr><td class="docs"><p>Given a tag and a map of attribute-value pairs, generate XPath</p>
@@ -3079,5 +3126,5 @@ to enable add-ons when needed</p>
                  (str "Href: "   href ", "))
      (when-attr src
                  (str "Source: " src ", "))
-     "Object: "                  q ">") w)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.firefox">clj-webdriver.firefox</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
+     "Object: "                  q ">") w)))</pre></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a><div id="floating-toc"><ul><li class="floating-toc-li" id="floating-toc_clj-webdriver.core">clj-webdriver.core</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.firefox">clj-webdriver.firefox</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.record">clj-webdriver.record</li><li class="floating-toc-li" id="floating-toc_clj-webdriver.util">clj-webdriver.util</li></ul></div></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
        SyntaxHighlighter.all()</script></body></html>
